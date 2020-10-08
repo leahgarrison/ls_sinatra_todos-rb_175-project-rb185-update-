@@ -1,0 +1,42 @@
+<%= @storage.all_lists %>
+<!doctype html>
+<html lang="en-US">
+  <head>
+    <title>Todo App</title>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="//fonts.googleapis.com/css?family=PT+Sans">
+    <link rel="stylesheet" href="/stylesheets/whitespace-reset.css">
+    <link rel="stylesheet" href="/stylesheets/application.css">
+    <script src="/javascripts/jquery-3.5.1.js"></script>
+    <script src="/javascripts/application.js"></script>
+  </head>
+  <body>
+    <header>
+      <h1>Todo Tracker</h1>
+      <div class="actions">
+        <%== yield_content :header_links %>
+      </div>
+      <!--<div class = "actions">-->
+      <!--<%# yield_content :list_links %>-->
+      <!--</div>-->
+    </header>
+    <% if @storage.get_success_message %>
+      <div class="flash success">
+        <p><%= @storage.get_success_message %></p>
+        <% @storage.reset_messages %>
+      </div>
+    <% end %>
+    
+    <% if @storage.get_error_message %>
+      <div class="flash error">
+        <p><%= @storage.get_error_message %></p>
+        <% @storage.reset_messages %>
+      </div>
+    <% end %>
+    <main>
+      <%== yield %>
+    </main>
+  </body>
+</html>
+
+
