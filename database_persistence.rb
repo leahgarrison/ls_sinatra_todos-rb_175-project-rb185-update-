@@ -19,6 +19,9 @@ class DatabasePersistence
     @db.exec_params(statement, params)
   end
   
+  def disconnect
+    @db.close
+  end
   
   def mark_all_todos_as_completed(list_id)
     #find_list(list_id)[:todos].each { |todo| todo[:completed] = true}

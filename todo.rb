@@ -19,10 +19,6 @@ before do
   @storage = DatabasePersistence.new(logger)
 end
 
-def disconnect
-  @storage.close
-end
-
 after do
   @storage.disconnect
 end
