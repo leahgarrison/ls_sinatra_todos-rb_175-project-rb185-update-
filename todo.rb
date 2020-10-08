@@ -24,7 +24,7 @@ after do
 end
 
 def disconnect
-  @db.close
+  @storage.close
 end
 
 def load_list(id)
