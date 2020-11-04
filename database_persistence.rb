@@ -36,30 +36,59 @@ class DatabasePersistence
   end
   
   def find_list(id)
-    sql = "SELECT * FROM lists WHERE id = $1"
-    result = query(sql, id)
-    #result = @db.exec_params(sql, [id])
-    todos = find_todos_for_list(id)
-    tuple = result.first
-    {id: tuple["id"], name: tuple["name"], todos: todos}
+    # ****** algorithm # 2
+    # sql = "SELECT * FROM lists WHERE id = $1"
+    # result = query(sql, id)
+    # #todos = find_todos_for_list(id)
+    # tuple = result.first
+    # {id: tuple["id"], name: tuple["name"], todos_remaining_count: 0, todos_count: 0}
+    
+    # ******* algorithm 1
     # [] << r.first
-    #@session[:lists].find{ |list| list[:id] == id }
+    # @session[:lists].find{ |list| list[:id] == id }
+    
+    # algorithm 3
+    
+    sql = <<~SQL
+      SELECT lists.*, 
+        count(todos.id) AS todos_count,
+        count(NULLIF(todos.completed, true)) as todos_remaining_count
+        FROM lists 
+        LEFT OUTER JOIN todos 
+        ON todos.list_id = lists.id 
+        WHERE lists.id = $1
+        GROUP BY lists.id
+        ORDER BY lists.name;
+    SQL
+    
+    result = query(sql, id)
+    tuple_to_list_hash(result.first)
+    
   end
   
+  def tuple_to_list_hash(tuple)
+    { id: tuple["id"].to_i, 
+        name: tuple["name"], 
+        todos_count: tuple["todos_count"].to_i,
+        todos_remaining_count: tuple["todos_remaining_count"].to_i}
+  end
   def all_lists
     # problem: need to join lists with every one of its todo items.
     # need the todos items each as a hash inside a list.
     # use the id from the column to do a query and grab all the todo rows for it. put them into the array
-    list_sql = "SELECT * FROM lists"
-    
-
-    list_result =  query(list_sql)
-    list_result.map do |list_tuple|
-      list_id = list_tuple["id"].to_i
-      todos = find_todos_for_list(list_id)
-
-      {id: list_id, name: list_tuple["name"], todos: todos}
-    end 
+    sql = "SELECT * FROM lists"
+    sql = <<~SQL
+      SELECT lists.*, 
+        count(todos.id) AS todos_count,
+        count(NULLIF(todos.completed, true)) as todos_remaining_count
+        FROM lists 
+        LEFT OUTER JOIN todos 
+        ON todos.list_id = lists.id 
+        GROUP BY lists.id
+        ORDER BY lists.name;
+    SQL
+    result =  query(sql)
+    result.map { |tuple| tuple_to_list_hash(tuple) }
   end
   
   def create_new_list(list_name)
@@ -122,8 +151,6 @@ class DatabasePersistence
     #@success = nil
     #@error = nil
   end
-  
-  private
   
   def find_todos_for_list(list_id)
     todo_sql = "SELECT * FROM todos WHERE list_id = $1"

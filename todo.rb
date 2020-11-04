@@ -51,18 +51,11 @@ end
 # helper methods here are intended to be used in the view templates, leave other methods separate
 helpers do 
   def list_complete?(list)
-    todos_count(list) > 0 && todos_remaining_count(list) == 0
+    list[:todos_count] > 0 && list[:todos_remaining_count] == 0
   end 
   
   def list_class(list)
     "complete" if list_complete?(list)
-  end
-  def todos_count(list)
-    list[:todos].size
-  end
-  
-  def todos_remaining_count(list)
-    list[:todos].count { |todo| todo[:completed] == false }
   end
   
   def sort_lists(lists, &block) 
@@ -73,7 +66,15 @@ helpers do
     
     incomplete_lists.each(&block)
     complete_lists.each(&block)
+    
+    
+  #   incomplete_lists = {}
+  #   complete_lists = {}
   
+  # complete_lists, incomplete_lists = lists.partition { |list| list_complete?(list) }
+    
+  #   incomplete_lists.each(&block)
+  #   complete_lists.each(&block)
   end 
   
   def sort_todos(todos, &block)
@@ -123,6 +124,7 @@ end
 get '/lists/:number' do
   @list_number = params[:number].to_i
   @list = load_list(@list_number)
+  @todos = @storage.find_todos_for_list(@list_number)
   erb :list, layout: :layout
 end
 
